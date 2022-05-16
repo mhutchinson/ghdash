@@ -26,23 +26,27 @@ func main() {
 	if err != nil {
 		glog.Exitf("Boom: %v", err)
 	}
-	glog.Infof("Found %d issues", len(issues))
+
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("%d issues:\n", len(issues)))
 	for _, issue := range issues {
-		glog.Infof(" %s", formatItem(workItem(issue)))
+		sb.WriteString(fmt.Sprintf(" %s\n", formatItem(workItem(issue))))
 	}
 
 	prs, _, err := client.PullRequests.List(ctx, owner, project, nil)
 	if err != nil {
 		glog.Exitf("Boom: %v", err)
 	}
-	glog.Infof("Found %d PRs", len(prs))
+	sb.WriteString(fmt.Sprintf("Found %d PRs:\n", len(prs)))
 	for _, pr := range prs {
 		reviewers := make([]string, len(pr.RequestedReviewers))
 		for i, v := range pr.RequestedReviewers {
 			reviewers[i] = *v.Login
 		}
-		glog.Infof(" %s %s", formatItem(workItem(pr)), reviewers)
+		sb.WriteString(fmt.Sprintf(" %s %s\n", formatItem(workItem(pr)), reviewers))
 	}
+
+	fmt.Println(sb.String())
 }
 
 func parseRepo() (string, string) {
