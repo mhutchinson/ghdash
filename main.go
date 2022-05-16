@@ -71,5 +71,5 @@ func formatItem(i workItem) string {
 	if ass := i.GetAssignee(); ass != nil {
 		assignee = *ass.Login
 	}
-	return fmt.Sprintf("#%d %q: %s -> %s (%s, %s)", i.GetNumber(), i.GetTitle(), *i.GetUser().Login, assignee, i.GetCreatedAt().Format("2006-02-01"), i.GetUpdatedAt().Format("2006-02-01"))
+	return fmt.Sprintf("#%d %q: %s -> %s (%s, %s)", i.GetNumber(), i.GetTitle(), *i.GetUser().Login, assignee, i.GetCreatedAt().Format("2006-01-02"), i.GetUpdatedAt().Format("2006-01-02"))
 }
