@@ -37,7 +37,7 @@ func main() {
 	if err != nil {
 		glog.Exitf("Boom: %v", err)
 	}
-	sb.WriteString(fmt.Sprintf("Found %d PRs:\n", len(prs)))
+	sb.WriteString(fmt.Sprintf("%d PRs:\n", len(prs)))
 	for _, pr := range prs {
 		reviewers := make([]string, len(pr.RequestedReviewers))
 		for i, v := range pr.RequestedReviewers {
