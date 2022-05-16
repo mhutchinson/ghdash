@@ -37,7 +37,11 @@ func main() {
 	}
 	glog.Infof("Found %d PRs", len(prs))
 	for _, pr := range prs {
-		glog.Infof(" %s", formatItem(workItem(pr)))
+		reviewers := make([]string, len(pr.RequestedReviewers))
+		for i, v := range pr.RequestedReviewers {
+			reviewers[i] = *v.Login
+		}
+		glog.Infof(" %s %s", formatItem(workItem(pr)), reviewers)
 	}
 }
 
@@ -63,5 +67,5 @@ func formatItem(i workItem) string {
 	if ass := i.GetAssignee(); ass != nil {
 		assignee = *ass.Login
 	}
-	return fmt.Sprintf("#%d %q: %s -> %s (%s, %s)", i.GetNumber(), i.GetTitle(), *i.GetUser().Login, assignee, i.GetCreatedAt(), i.GetUpdatedAt())
+	return fmt.Sprintf("#%d %q: %s -> %s (%s, %s)", i.GetNumber(), i.GetTitle(), *i.GetUser().Login, assignee, i.GetCreatedAt().Format("2006-02-01"), i.GetUpdatedAt().Format("2006-02-01"))
 }
