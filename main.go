@@ -22,9 +22,13 @@ func main() {
 	owner, project := parseRepo()
 	client := github.NewClient(nil)
 
-	issues, _, err := client.Issues.ListByRepo(ctx, owner, project, nil)
-	if err != nil {
+	var issues []issueWorkItem
+	if iss, _, err := client.Issues.ListByRepo(ctx, owner, project, nil); err != nil {
 		glog.Exitf("Boom: %v", err)
+	} else {
+		for _, i := range iss {
+			issues = append(issues, issueWorkItem{i})
+		}
 	}
 
 	var sb strings.Builder
@@ -33,17 +37,17 @@ func main() {
 		sb.WriteString(fmt.Sprintf(" %s\n", formatItem(workItem(issue))))
 	}
 
-	prs, _, err := client.PullRequests.List(ctx, owner, project, nil)
-	if err != nil {
+	var prs []prWorkItem
+	if pss, _, err := client.PullRequests.List(ctx, owner, project, nil); err != nil {
 		glog.Exitf("Boom: %v", err)
+	} else {
+		for _, p := range pss {
+			prs = append(prs, prWorkItem{p})
+		}
 	}
 	sb.WriteString(fmt.Sprintf("%d PRs:\n", len(prs)))
 	for _, pr := range prs {
-		reviewers := make([]string, len(pr.RequestedReviewers))
-		for i, v := range pr.RequestedReviewers {
-			reviewers[i] = *v.Login
-		}
-		sb.WriteString(fmt.Sprintf(" %s %s\n", formatItem(workItem(pr)), reviewers))
+		sb.WriteString(fmt.Sprintf(" %s\n", formatItem(workItem(pr))))
 	}
 
 	fmt.Println(sb.String())
@@ -61,15 +65,38 @@ type workItem interface {
 	GetNumber() int
 	GetTitle() string
 	GetUser() *github.User
-	GetAssignee() *github.User
+	GetAttentionSet() []string
 	GetCreatedAt() time.Time
 	GetUpdatedAt() time.Time
 }
 
 func formatItem(i workItem) string {
-	assignee := "UNASSIGNED"
-	if ass := i.GetAssignee(); ass != nil {
-		assignee = *ass.Login
+	return fmt.Sprintf("#%d %q: %s -> %s (%s, %s)", i.GetNumber(), i.GetTitle(), *i.GetUser().Login, i.GetAttentionSet(), i.GetCreatedAt().Format("2006-01-02"), i.GetUpdatedAt().Format("2006-01-02"))
+}
+
+type issueWorkItem struct {
+	*github.Issue
+}
+
+func (i issueWorkItem) GetAttentionSet() []string {
+	as := make([]string, 0)
+	if i.Assignee != nil {
+		as = append(as, *i.Assignee.Login)
 	}
-	return fmt.Sprintf("#%d %q: %s -> %s (%s, %s)", i.GetNumber(), i.GetTitle(), *i.GetUser().Login, assignee, i.GetCreatedAt().Format("2006-01-02"), i.GetUpdatedAt().Format("2006-01-02"))
+	return as
+}
+
+type prWorkItem struct {
+	*github.PullRequest
+}
+
+func (p prWorkItem) GetAttentionSet() []string {
+	as := make([]string, 0)
+	if p.Assignee != nil {
+		as = append(as, *p.Assignee.Login)
+	}
+	for _, r := range p.RequestedReviewers {
+		as = append(as, *r.Login)
+	}
+	return as
 }
