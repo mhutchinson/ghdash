@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"strings"
@@ -72,7 +73,10 @@ type workItem interface {
 }
 
 func formatItem(i workItem) string {
-	return fmt.Sprintf("#%d %q: %s -> %s (%s, %s) %s", i.GetNumber(), i.GetTitle(), *i.GetUser().Login, i.GetAttentionSet(), i.GetCreatedAt().Format("2006-01-02"), i.GetUpdatedAt().Format("2006-01-02"), i.GetLabels())
+	attentionSet, _ := json.Marshal(i.GetAttentionSet())
+	labels, _ := json.Marshal(i.GetLabels())
+	created, updated := i.GetCreatedAt().Format("2006-01-02"), i.GetUpdatedAt().Format("2006-01-02")
+	return fmt.Sprintf("#%d %q: %s -> %s (%s, %s) %s", i.GetNumber(), i.GetTitle(), *i.GetUser().Login, string(attentionSet), created, updated, string(labels))
 }
 
 type issueWorkItem struct {
@@ -114,6 +118,9 @@ func (p prWorkItem) GetLabels() []string {
 	labels := make([]string, len(p.Labels))
 	for i, l := range p.Labels {
 		labels[i] = *l.Name
+	}
+	if *p.Draft {
+		labels = append(labels, "draft")
 	}
 	return labels
 }
