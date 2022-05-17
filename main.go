@@ -66,12 +66,13 @@ type workItem interface {
 	GetTitle() string
 	GetUser() *github.User
 	GetAttentionSet() []string
+	GetLabels() []string
 	GetCreatedAt() time.Time
 	GetUpdatedAt() time.Time
 }
 
 func formatItem(i workItem) string {
-	return fmt.Sprintf("#%d %q: %s -> %s (%s, %s)", i.GetNumber(), i.GetTitle(), *i.GetUser().Login, i.GetAttentionSet(), i.GetCreatedAt().Format("2006-01-02"), i.GetUpdatedAt().Format("2006-01-02"))
+	return fmt.Sprintf("#%d %q: %s -> %s (%s, %s) %s", i.GetNumber(), i.GetTitle(), *i.GetUser().Login, i.GetAttentionSet(), i.GetCreatedAt().Format("2006-01-02"), i.GetUpdatedAt().Format("2006-01-02"), i.GetLabels())
 }
 
 type issueWorkItem struct {
@@ -84,6 +85,14 @@ func (i issueWorkItem) GetAttentionSet() []string {
 		as = append(as, *i.Assignee.Login)
 	}
 	return as
+}
+
+func (i issueWorkItem) GetLabels() []string {
+	labels := make([]string, len(i.Labels))
+	for i, l := range i.Labels {
+		labels[i] = *l.Name
+	}
+	return labels
 }
 
 type prWorkItem struct {
@@ -99,4 +108,12 @@ func (p prWorkItem) GetAttentionSet() []string {
 		as = append(as, *r.Login)
 	}
 	return as
+}
+
+func (p prWorkItem) GetLabels() []string {
+	labels := make([]string, len(p.Labels))
+	for i, l := range p.Labels {
+		labels[i] = *l.Name
+	}
+	return labels
 }
