@@ -28,7 +28,9 @@ func main() {
 		glog.Exitf("Boom: %v", err)
 	} else {
 		for _, i := range iss {
-			issues = append(issues, issueWorkItem{i})
+			if !i.IsPullRequest() {
+				issues = append(issues, issueWorkItem{i})
+			}
 		}
 	}
 
