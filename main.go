@@ -6,10 +6,9 @@ import (
 	"flag"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/golang/glog"
-	"github.com/google/go-github/v44/github"
+	"github.com/google/go-github/v55/github"
 )
 
 var (
@@ -70,8 +69,8 @@ type workItem interface {
 	GetUser() *github.User
 	GetAttentionSet() []string
 	GetLabels() []string
-	GetCreatedAt() time.Time
-	GetUpdatedAt() time.Time
+	GetCreatedAt() *github.Timestamp
+	GetUpdatedAt() *github.Timestamp
 }
 
 func formatItem(i workItem) string {
@@ -83,6 +82,14 @@ func formatItem(i workItem) string {
 
 type issueWorkItem struct {
 	*github.Issue
+}
+
+func (i issueWorkItem) GetCreatedAt() *github.Timestamp {
+	return i.CreatedAt
+}
+
+func (i issueWorkItem) GetUpdatedAt() *github.Timestamp {
+	return i.UpdatedAt
 }
 
 func (i issueWorkItem) GetAttentionSet() []string {
@@ -103,6 +110,14 @@ func (i issueWorkItem) GetLabels() []string {
 
 type prWorkItem struct {
 	*github.PullRequest
+}
+
+func (p prWorkItem) GetCreatedAt() *github.Timestamp {
+	return p.CreatedAt
+}
+
+func (p prWorkItem) GetUpdatedAt() *github.Timestamp {
+	return p.UpdatedAt
 }
 
 func (p prWorkItem) GetAttentionSet() []string {
